@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mandelbulb Fractal</title>
+
+    <style>
+    body {
+        margin: 0;
+        /* We use overflow auto in order to be able to scroll down to the error box */
+        overflow: auto; 
+        background: #000;
+    }
+
+    #sliderContainer {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-family: sans-serif;
+
+        /* Flexbox in order to center the power (p) text */
+        display: flex;        
+        align-items: center;  
+        flex-direction: column;
+        gap: 5px;             
+    }
+
+    #mycanvas {
+        display: block;
+    }
+
+    #error-box {
+        color: #fd8080;
+        font-weight: 500;
+        font-size: 18pt;
+        border: 1px solid white;
+        padding: 25px;
+        margin-top: 20px;
+    }
+    .error-box-title {
+        color: #eee;
+        border-bottom: 1px solid gray;
+        }
+
+    </style>
+</head>
+
+<body>
+  <div id="sliderContainer">
+
+    <label for="power">Power (p): </label>
+    <span id="value">6.0</span>
+    <input type="range" id="slider" min="1.0" max="15.0" step="0.05" value="6.0">
+  
+
+    <label for="useDE">Use Distance Estimator</label>
+    <input type="checkbox" id="useDE" checked>
+
+    <label for="useCBS">Use Curvature-Based Shading</label>
+    <input type="checkbox" id="useCBS">
+
+  </div>
+  <canvas id="mycanvas"></canvas>
+  <div id="error-box">
+    <span class="error-box-title">Error messages go in here.</span>
+  </div>
+  <script src="mandelbulb.js"></script>
+</body>
+</html>
