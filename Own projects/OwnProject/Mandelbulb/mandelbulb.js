@@ -22,9 +22,13 @@ canvas.width = window.clientWidth;
 canvas.height = window.clientHeight;
 
 
-//Create variable for the slider, power and the distance estimator checkbox 
-const powerSlider = document.getElementById('slider');
-const powerValueDisplay = document.getElementById('value');
+//Create variable for the sliders and checkboxes
+const powerSlider = document.getElementById("Powerslider");
+const powerValueDisplay = document.getElementById("Powervalue");
+const phiSlider = document.getElementById("Phislider");
+const phiValueDisplay = document.getElementById("Phivalue");
+const thetaSlider = document.getElementById("Thetaslider");
+const thetaValueDisplay = document.getElementById("Thetavalue");
 const useDECheckbox = document.getElementById("useDE");
 const useCBSCheckbox = document.getElementById("useCBS");
 
@@ -46,6 +50,8 @@ const fragmentShaderSource = `
     uniform float power;
     uniform bool useDE;
     uniform bool useCBS;
+    uniform float phiTwist;
+    uniform float thetaTwist;
 
     //Helper function to make the mandelbulb rotate
     vec3 rotate(vec3 p) {
@@ -137,8 +143,8 @@ const fragmentShaderSource = `
 
             //Twist phi and theta for cool effects
             //Theres a lot of cool stuff you can do here: e.g. changing += with *= or taking away the distanceOrigin
-            phi *= 0.2 * distanceOrigin;
-            theta += 0.0 * distanceOrigin;
+            phi += phiTwist * distanceOrigin;
+            theta += thetaTwist * distanceOrigin;
 
             //Apply Mandelbulb transformation
             theta *= power;
@@ -317,9 +323,13 @@ const time = gl.getUniformLocation(prog, "time");
 const power = gl.getUniformLocation(prog, "power");
 const useDE = gl.getUniformLocation(prog, "useDE")
 const useCBS = gl.getUniformLocation(prog, "useCBS")
+const phiTwist = gl.getUniformLocation(prog, "phiTwist");
+const thetaTwist = gl.getUniformLocation(prog, "thetaTwist");
 
 let startTime = Date.now();
 let currentPower = parseFloat(powerSlider.value);
+let currentPhiTwist = parseFloat(phiSlider.value);
+let currentThetaTwist = parseFloat(thetaSlider.value);
 let useDistanceEstimator = useDECheckbox.checked;
 let useCurvutureBasedShading = useCBSCheckbox.checked;
 
@@ -337,6 +347,8 @@ function render() {
     gl.uniform1f(power, currentPower);
     gl.uniform1i(useDE, useDistanceEstimator); //Somehow there is no uniform for booleans... so we have to use int
     gl.uniform1i(useCBS,useCurvutureBasedShading);
+    gl.uniform1f(phiTwist, currentPhiTwist);
+    gl.uniform1f(thetaTwist, currentThetaTwist);
 
     //Clear and draw
     gl.clearColor(0.0, 0.0, 0.0, 1.0); //Make background black
@@ -360,7 +372,7 @@ function render() {
 //start rendering loop
 requestAnimationFrame(render);
 
-//Update power variable when slider changes
+//Update power 
 powerSlider.addEventListener('input', (e) => {
     currentPower = parseFloat(e.target.value); //Sets current power (used in rendering loop)
     powerValueDisplay.textContent = currentPower.toFixed(1); //Changes the displayed power value in the slider
@@ -376,5 +388,17 @@ useDECheckbox.addEventListener("change", () => {
 useCBSCheckbox.addEventListener("change", () => {
     useCurvutureBasedShading = useCBSCheckbox.checked; 
     render(); //Call render function to apply changes
+});
+
+//Update phi twist
+phiSlider.addEventListener('input', (e) => {
+    currentPhiTwist = parseFloat(e.target.value); //Sets current phi twist (used in rendering loop)
+    phiValueDisplay.textContent = currentPhiTwist.toFixed(1); //Changes the displayed power value in the slider
+});
+
+//Update power variable when slider changes
+thetaSlider.addEventListener('input', (e) => {
+    currentThetaTwist = parseFloat(e.target.value); //Sets current theta twist (used in rendering loop)
+    thetaValueDisplay.textContent = currentThetaTwist.toFixed(1); //Changes the displayed theta twist value in the slider
 });
 
