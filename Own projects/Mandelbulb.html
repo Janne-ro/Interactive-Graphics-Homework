@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mandelbulb Fractal</title>
+
+    <style>
+    body {
+        margin: 0;
+        /* We use overflow auto in order to be able to scroll down to the error box */
+        overflow: auto; 
+        background: #000;
+    }
+
+    #sliderContainer {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-family: sans-serif;
+
+        /* Flexbox in order to center the power (p) text */
+        display: flex;        
+        align-items: center;  
+        flex-direction: column;
+        gap: 5px;             
+    }
+
+    #mycanvas {
+        display: block;
+    }
+
+    #error-box {
+        color: #fd8080;
+        font-weight: 500;
+        font-size: 18pt;
+        border: 1px solid white;
+        padding: 25px;
+        margin-top: 20px;
+    }
+    .error-box-title {
+        color: #eee;
+        border-bottom: 1px solid gray;
+        }
+
+    /* Pop-up box for the keyframe input */
+    #keyframeModal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
+        z-index: 1000;
+    }
+
+    #keyframeModal input {
+        display: block;
+        margin: 5px 0;
+        width: 100%;
+    }
+
+    #modalOverlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    #closeModal {
+        cursor: pointer;
+        color: red;
+        float: right;
+        font-size: 18px;
+    }
+
+    #addKeyframe {
+        color: blue;
+        text-decoration: underline;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    </style>
+</head>
+
+<body>
+  <div id="sliderContainer">
+
+    <label for="power">Power (p): </label>
+    <span id="Powervalue">6.0</span>
+    <input type="range" id="Powerslider" min="1.0" max="15.0" step="0.05" value="6.0">
+
+    <!-- for how exact the normal is estimated, trade off between resolution and glicening effect-->
+    <label for="maxEpsilon">Epsilon: </label>
+    <span id="maxEpsilonValue">0.001</span>
+    <input type="range" id="maxEpsilonSlider" min="0" max="0.01" step="0.001" value="0.001">
+
+    <label for="phiTwist">Phi twist: </label>
+    <span id="Phivalue">0</span>
+    <input type="range" id="Phislider" min="-1.0" max="1.0" step="0.05" value="0.0">
+
+    <label for="thetaTwist">Theta twist: </label>
+    <span id="Thetavalue">0</span>
+    <input type="range" id="Thetaslider" min="-1.0" max="1.0" step="0.05" value="0.0">
+  
+    <label for="useDE">Use Distance Estimator</label>
+    <input type="checkbox" id="useDE" checked>
+
+    <label for="useCBS">Use Curvature-Based Shading</label>
+    <input type="checkbox" id="useCBS">
+
+    <!-- Clickable Text to create the keyframe -->
+    <span id="addKeyframe">Creat keyframe animation</span>
+
+  </div>
+  <canvas id="mycanvas"></canvas>
+
+  <div id="error-box">
+    <span class="error-box-title">Error messages go in here.</span>
+  </div>
+
+  <!-- Popup for Keyframe Input -->
+  <div id="modalOverlay"></div>
+  <div id="keyframeModal">
+    <span id="closeModal">&times;</span>
+    <h3>Enter Keyframes</h3>
+    <form id="keyframeForm">
+      <label for="animationTime">Animation Time (s):</label>
+      <input type="number" id="animationTime" min="1" max="100" value="5">
+
+      <label>Keyframes (power, phi twist, theta twist):</label>
+      <div id="keyframeInputs">
+        <input type="text" class="keyframeValue" placeholder="6.0, 0.0, 0.0">
+      </div>
+
+      <button type="button" id="addMoreKeyframes">+ Add Keyframe</button>
+      <button type="submit">Save</button>
+    </form>
+  </div>
+  <script src="mandelbulb.js"></script>
+</body>
+</html>

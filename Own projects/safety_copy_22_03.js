@@ -29,8 +29,11 @@ const phiSlider = document.getElementById("Phislider");
 const phiValueDisplay = document.getElementById("Phivalue");
 const thetaSlider = document.getElementById("Thetaslider");
 const thetaValueDisplay = document.getElementById("Thetavalue");
+const epsilonSlider = document.getElementById("Epsilonslider");
+const maxEpsilonValueDisplay = document.getElementById("maxEpsilonValue");
 const useDECheckbox = document.getElementById("useDE");
 const useCBSCheckbox = document.getElementById("useCBS");
+
 
 //Vertex shader: renders a full-screen quad
 const vertexShaderSource = `
@@ -52,6 +55,7 @@ const fragmentShaderSource = `
     uniform bool useCBS;
     uniform float phiTwist;
     uniform float thetaTwist;
+    uniform float maxEpsilon;
 
     //Helper function to make the mandelbulb rotate
     vec3 rotate(vec3 p) {
@@ -193,7 +197,7 @@ const fragmentShaderSource = `
     vec3 estimateNormal(vec3 pos) {
         //scale eps with power as for small powers the suface gradient estimation has numerical issues because the distance estimation mandelbulbDE can get very small
         //thus eps should get bigger with smaller powers making it more imprecise but reducing occuring flickering greatly
-        float eps = max(0.001, 0.01 / power); 
+        float eps = max(maxEpsilon, 0.01 / power); 
         return normalize(vec3(
             mandelbulbDE(rotate(pos+vec3(eps, 0.0, 0.0))) - mandelbulbDE(rotate(pos-vec3(eps, 0.0, 0.0))),
             mandelbulbDE(rotate(pos+vec3(0.0, eps, 0.0))) - mandelbulbDE(rotate(pos-vec3(0.0, eps, 0.0))),
@@ -325,13 +329,16 @@ const useDE = gl.getUniformLocation(prog, "useDE")
 const useCBS = gl.getUniformLocation(prog, "useCBS")
 const phiTwist = gl.getUniformLocation(prog, "phiTwist");
 const thetaTwist = gl.getUniformLocation(prog, "thetaTwist");
+const maxEpsilon = gl.getUniformLocation(prog, "maxEpsilon");
 
 let startTime = Date.now();
 let currentPower = parseFloat(powerSlider.value);
 let currentPhiTwist = parseFloat(phiSlider.value);
 let currentThetaTwist = parseFloat(thetaSlider.value);
+let currentMaxEpsilon = parseFloat(maxEpsilonSlider.value);
 let useDistanceEstimator = useDECheckbox.checked;
 let useCurvutureBasedShading = useCBSCheckbox.checked;
+let animationOnging = false; //variable that checks wheter theres an animation ongoing
 
 //The loop to render the program
 function render() {
@@ -349,6 +356,7 @@ function render() {
     gl.uniform1i(useCBS,useCurvutureBasedShading);
     gl.uniform1f(phiTwist, currentPhiTwist);
     gl.uniform1f(thetaTwist, currentThetaTwist);
+    gl.uniform1f(maxEpsilon, currentMaxEpsilon);
 
     //Clear and draw
     gl.clearColor(0.0, 0.0, 0.0, 1.0); //Make background black
@@ -396,9 +404,88 @@ phiSlider.addEventListener('input', (e) => {
     phiValueDisplay.textContent = currentPhiTwist.toFixed(1); //Changes the displayed power value in the slider
 });
 
-//Update power variable when slider changes
+//Update theta twist
 thetaSlider.addEventListener('input', (e) => {
     currentThetaTwist = parseFloat(e.target.value); //Sets current theta twist (used in rendering loop)
     thetaValueDisplay.textContent = currentThetaTwist.toFixed(1); //Changes the displayed theta twist value in the slider
 });
+
+//Update max epsilon
+maxEpsilonSlider.addEventListener('input', (e) => {
+    currentMaxEpsilon = parseFloat(e.target.value); //Sets current theta twist (used in rendering loop)
+    maxEpsilonValueDisplay.textContent = currentMaxEpsilon.toFixed(3); //Changes the displayed theta twist value in the slider (changed to 3 to dissplay all three decimal places)
+});
+
+//Everything for the keyframe animation procedure
+document.addEventListener("DOMContentLoaded", function () {
+
+    //load the elements
+    const addKeyframeBtn = document.getElementById("addKeyframe");
+    const modal = document.getElementById("keyframeModal");
+    const overlay = document.getElementById("modalOverlay");
+    const closeModal = document.getElementById("closeModal");
+    const form = document.getElementById("keyframeForm");
+    const keyframeInputs = document.getElementById("keyframeInputs");
+    const addMoreKeyframesBtn = document.getElementById("addMoreKeyframes");
+    let keyframeCount = 1; //counting the number of keyframes to not exceed 10
+
+    //Event listener to open the window
+    addKeyframeBtn.addEventListener("click", function () {
+        modal.style.display = "block";
+        overlay.style.display = "block";
+    });
+
+    //Event listener to close the window
+    closeModal.addEventListener("click", function () {
+        modal.style.display = "none";
+        overlay.style.display = "none";
+    });
+
+    //Event listener to add more keyframe inputs
+    addMoreKeyframesBtn.addEventListener("click", function () {
+        if (keyframeCount < 10){ //make sure that we have at most 10 keyframes
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "keyframeValue";
+            input.placeholder = "6.0, 0.0, 0.0";
+            keyframeInputs.appendChild(input);
+            keyframeCount++;
+        }
+    });
+
+    // Saves the keyframes according to their form
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const animationTime = parseFloat(document.getElementById("animationTime").value);
+        const keyframeValues = Array.from(document.getElementsByClassName("keyframeValue"))
+            .map(input => input.value.split(",").map(val => parseFloat(val.trim()))) //split values to an array
+            .filter(arr => arr.length===3 && arr.every(num => !isNaN(num))) //check that user input three numbers
+            .map(arr => ({
+                power: Math.max(1,Math.min(15, arr[0])),// Clipped between [1, 15]
+                phiTwist: Math.max(-1, Math.min(1, arr[1])), // Clipped between [-1, 1]
+                thetaTwist: Math.max(-1, Math.min(1,arr[2])) // Clipped between [-1, 1]
+            }));
+
+        //save the keyframe
+        const keyframes = {
+            duration: animationTime,
+            values: keyframeValues
+        };
+
+        console.log("Saved Keyframes:", keyframes);
+
+        // Hide modal after saving
+        modal.style.display = "none";
+        overlay.style.display = "none";
+
+        //set the ongoingAnimation variable to true
+
+    });
+});
+
+//Implement the smooth keyframe interpolation from class
+//We use 30 FPS as suggested by NTSC framework
+
+
 
