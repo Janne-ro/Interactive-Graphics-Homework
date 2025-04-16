@@ -44,6 +44,7 @@ const vertexShaderSource = `
 `;
 
 //Fragment shader: implements the Mandelbulb using ray marching
+//Ray tracing is impractical as we cant use analytic geometry to get intersection position --> we need to estimate
 const fragmentShaderSource = `
     precision highp float; //We want high precision for floats
 
@@ -128,7 +129,7 @@ const fragmentShaderSource = `
         vec3 trackedPoint = position;
         float derivative = 1.0; //accumulates the effect of the derivative (ie. the rate at which the function is changing), used to scale our distance estimate later
         float distanceOrigin = 0.0;
-        const int Iterations = 30;
+        const int Iterations = 100;
 
         for (int i = 0; i < Iterations; i++) {
 
