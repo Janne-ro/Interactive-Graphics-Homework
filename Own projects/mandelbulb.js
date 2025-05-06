@@ -261,6 +261,8 @@ const fragmentShaderSource = `
             }
 
             //Also tried orbit traps and lighting based on orientation of the surface normal (color = abs(normal)) but doesnt look so good
+
+            //[TO-DO] Possibly include shadow mapping
         }
         
         gl_FragColor = vec4(color, 1.0);
